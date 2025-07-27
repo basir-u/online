@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-chart-bar"></i> Reports & Analytics</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item active">Reports</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Tenant Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Export comprehensive tenant information including contact details, lease status, and payment history.</p>
+                    <div class="export-buttons">
+                        <a href="{{ url_for('export_tenants', format='pdf') }}" class="btn btn-outline-danger">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </a>
+                        <a href="{{ url_for('export_tenants', format='excel') }}" class="btn btn-outline-success">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Payment Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Export detailed payment records including payment methods, dates, and associated invoices.</p>
+                    <div class="export-buttons">
+                        <a href="{{ url_for('export_payments', format='pdf') }}" class="btn btn-outline-danger">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </a>
+                        <a href="{{ url_for('export_payments', format='excel') }}" class="btn btn-outline-success">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card dashboard-card stats-primary text-center">
+                <div class="card-body">
+                    <i class="fas fa-home card-icon"></i>
+                    <h3 class="mt-2">100%</h3>
+                    <p class="mb-0">Occupancy Rate</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card stats-success text-center">
+                <div class="card-body">
+                    <i class="fas fa-dollar-sign card-icon"></i>
+                    <h3 class="mt-2">$25,000</h3>
+                    <p class="mb-0">Monthly Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card stats-warning text-center">
+                <div class="card-body">
+                    <i class="fas fa-clock card-icon"></i>
+                    <h3 class="mt-2">2</h3>
+                    <p class="mb-0">Pending Payments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card stats-info text-center">
+                <div class="card-body">
+                    <i class="fas fa-tools card-icon"></i>
+                    <h3 class="mt-2">5</h3>
+                    <p class="mb-0">Open Maintenance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-line"></i> Monthly Revenue Trend</h5>
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-pie"></i> Payment Methods</h5>
+                <canvas id="paymentMethodsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-bar"></i> Maintenance by Category</h5>
+                <canvas id="maintenanceChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5><i class="fas fa-building"></i> Unit Types Distribution</h5>
+                <canvas id="unitTypesChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Tables -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-table"></i> Financial Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Expected Revenue</th>
+                                    <th>Collected Revenue</th>
+                                    <th>Outstanding</th>
+                                    <th>Collection Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>December 2024</td>
+                                    <td>$25,000</td>
+                                    <td>$23,500</td>
+                                    <td>$1,500</td>
+                                    <td><span class="badge bg-success">94%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>November 2024</td>
+                                    <td>$25,000</td>
+                                    <td>$25,000</td>
+                                    <td>$0</td>
+                                    <td><span class="badge bg-success">100%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>October 2024</td>
+                                    <td>$24,500</td>
+                                    <td>$24,500</td>
+                                    <td>$0</td>
+                                    <td><span class="badge bg-success">100%</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // Revenue Trend Chart
+    const revenueCtx = document.getElementById('revenueChart');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Monthly Revenue',
+                data: [22000, 23000, 24000, 24500, 25000, 23500],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Payment Methods Chart
+    const paymentMethodsCtx = document.getElementById('paymentMethodsChart');
+    new Chart(paymentMethodsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Bank Transfer', 'Cash', 'Check', 'Online'],
+            datasets: [{
+                data: [45, 25, 20, 10],
+                backgroundColor: ['#27ae60', '#3498db', '#f39c12', '#e74c3c'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Maintenance Chart
+    const maintenanceCtx = document.getElementById('maintenanceChart');
+    new Chart(maintenanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Plumbing', 'Electrical', 'HVAC', 'General', 'Appliances'],
+            datasets: [{
+                label: 'Requests',
+                data: [12, 8, 5, 15, 6],
+                backgroundColor: '#3498db',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Unit Types Chart
+    const unitTypesCtx = document.getElementById('unitTypesChart');
+    new Chart(unitTypesCtx, {
+        type: 'pie',
+        data: {
+            labels: ['1BHK', '2BHK', '3BHK', 'Studio'],
+            datasets: [{
+                data: [40, 35, 20, 5],
+                backgroundColor: ['#e74c3c', '#f39c12', '#27ae60', '#9b59b6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

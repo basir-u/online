@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Payments - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-credit-card"></i> Payments</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item active">Payments</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group">
+                    <a href="{{ url_for('add_payment') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Record Payment
+                    </a>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('export_payments', format='pdf') }}">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('export_payments', format='excel') }}">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="table-responsive">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Total: {{ payments|length }} payment(s)</h5>
+            <input type="text" id="searchInput" class="form-control w-auto" 
+                   placeholder="Quick search...">
+        </div>
+        
+        <table class="table table-hover searchable-table" id="paymentsTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, 'paymentsTable')" style="cursor: pointer;">
+                        Tenant <span class="sort-indicator"></span>
+                    </th>
+                    <th onclick="sortTable(1, 'paymentsTable')" style="cursor: pointer;">
+                        Amount <span class="sort-indicator"></span>
+                    </th>
+                    <th onclick="sortTable(2, 'paymentsTable')" style="cursor: pointer;">
+                        Payment Date <span class="sort-indicator"></span>
+                    </th>
+                    <th onclick="sortTable(3, 'paymentsTable')" style="cursor: pointer;">
+                        Method <span class="sort-indicator"></span>
+                    </th>
+                    <th>Reference</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                {{ payment.tenant.name[0].upper() }}
+                            </div>
+                            <div>
+                                <strong>{{ payment.tenant.name }}</strong>
+                                <br><small class="text-muted">{{ payment.tenant.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-success">${{ payment.amount }}</div>
+                        {% if payment.invoice %}
+                        <small class="text-muted">
+                            Invoice: {{ payment.invoice.invoice_number }}
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td>{{ payment.payment_date.strftime('%m/%d/%Y') }}</td>
+                    <td>
+                        <span class="badge bg-info">
+                            {{ payment.payment_method.replace('_', ' ').title() }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if payment.reference_number %}
+                        <span class="badge bg-secondary">{{ payment.reference_number }}</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if payment.notes %}
+                        <small>{{ payment.notes[:50] }}{% if payment.notes|length > 50 %}...{% endif %}</small>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline-info"
+                                    onclick="showPaymentDetails({{ payment.id }})"
+                                    data-bs-toggle="tooltip" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary"
+                                    onclick="generateReceipt({{ payment.id }})"
+                                    data-bs-toggle="tooltip" title="Generate Receipt">
+                                <i class="fas fa-receipt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if not payments %}
+        <div class="text-center py-5">
+            <i class="fas fa-credit-card text-muted" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 text-muted">No payments found</h5>
+            <p class="text-muted">Record your first payment</p>
+            <a href="{{ url_for('add_payment') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Record Payment
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Payment Details Modal -->
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="paymentDetailsContent">
+                <!-- Payment details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showPaymentDetails(paymentId) {
+    $('#paymentDetailsModal').modal('show');
+    $('#paymentDetailsContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading payment details...</div>');
+    
+    // Simulate loading payment details
+    setTimeout(function() {
+        $('#paymentDetailsContent').html(`
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Payment Information</h6>
+                    <table class="table table-sm">
+                        <tr><th>Payment ID:</th><td>PAY-${paymentId.toString().padStart(6, '0')}</td></tr>
+                        <tr><th>Amount:</th><td class="text-success fw-bold">$1,000.00</td></tr>
+                        <tr><th>Date:</th><td>${new Date().toLocaleDateString()}</td></tr>
+                        <tr><th>Method:</th><td>Bank Transfer</td></tr>
+                        <tr><th>Reference:</th><td>REF123456</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Tenant Information</h6>
+                    <table class="table table-sm">
+                        <tr><th>Name:</th><td>Tenant Name</td></tr>
+                        <tr><th>Email:</th><td>tenant@example.com</td></tr>
+                        <tr><th>Unit:</th><td>Unit 101</td></tr>
+                        <tr><th>Invoice:</th><td>INV-000001</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>Notes</h6>
+                    <p class="bg-light p-3 rounded">Monthly rent payment for December 2024.</p>
+                </div>
+            </div>
+        `);
+    }, 1000);
+}
+
+function generateReceipt(paymentId) {
+    showAlert('Generating payment receipt...', 'info');
+    // Simulate receipt generation
+    setTimeout(function() {
+        showAlert('Receipt generated successfully!', 'success');
+    }, 2000);
+}
+</script>
+{% endblock %}

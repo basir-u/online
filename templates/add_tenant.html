@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Add Tenant - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-user-plus"></i> Add New Tenant</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('tenants') }}">Tenants</a></li>
+                        <li class="breadcrumb-item active">Add Tenant</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Tenant Information</h5>
+                </div>
+                
+                <form method="POST" id="tenantForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required
+                                       placeholder="Enter full name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" id="email" name="email" required
+                                       placeholder="Enter email address">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required
+                                       placeholder="Enter phone number">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="emergency_phone" class="form-label">Emergency Phone</label>
+                                <input type="tel" class="form-control" id="emergency_phone" name="emergency_phone"
+                                       placeholder="Enter emergency contact phone">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="emergency_contact" class="form-label">Emergency Contact Name</label>
+                        <input type="text" class="form-control" id="emergency_contact" name="emergency_contact"
+                               placeholder="Enter emergency contact name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3"
+                                  placeholder="Enter current address"></textarea>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('tenants') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Tenants
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Tenant
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-save form data
+    setInterval(function() {
+        autoSaveForm('tenantForm');
+    }, 30000); // Auto-save every 30 seconds
+    
+    // Restore form data on page load
+    restoreFormData('tenantForm');
+    
+    // Clear auto-save on successful submit
+    $('#tenantForm').submit(function() {
+        clearAutoSave('tenantForm');
+    });
+    
+    // Format phone numbers
+    $('input[type="tel"]').on('input', function() {
+        let value = $(this).val().replace(/\D/g, '');
+        let formattedValue = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+        if (value.length <= 10) {
+            $(this).val(formattedValue);
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Add Unit - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-plus"></i> Add New Unit</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('units') }}">Units</a></li>
+                        <li class="breadcrumb-item active">Add Unit</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-home"></i> Unit Information</h5>
+                </div>
+                
+                <form method="POST" id="unitForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="number" class="form-label">Unit Number *</label>
+                                <input type="text" class="form-control" id="number" name="number" required
+                                       placeholder="e.g., 101, A-1, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="floor" class="form-label">Floor *</label>
+                                <input type="number" class="form-control" id="floor" name="floor" required
+                                       min="1" max="50" placeholder="Floor number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Unit Type *</label>
+                                <select class="form-control" id="type" name="type" required>
+                                    <option value="">Select unit type</option>
+                                    <option value="Studio">Studio</option>
+                                    <option value="1BHK">1 BHK</option>
+                                    <option value="2BHK">2 BHK</option>
+                                    <option value="3BHK">3 BHK</option>
+                                    <option value="4BHK">4 BHK</option>
+                                    <option value="Penthouse">Penthouse</option>
+                                    <option value="Commercial">Commercial</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="area" class="form-label">Area (sq ft)</label>
+                                <input type="number" class="form-control" id="area" name="area"
+                                       min="100" max="5000" step="0.01" placeholder="Area in square feet">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="rent_amount" class="form-label">Monthly Rent *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="rent_amount" name="rent_amount" required
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="deposit_amount" class="form-label">Security Deposit *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="deposit_amount" name="deposit_amount" required
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('units') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Units
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Unit
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-populate deposit based on rent (typical 2x rent)
+    $('#rent_amount').on('input', function() {
+        var rent = parseFloat($(this).val());
+        if (rent && !$('#deposit_amount').val()) {
+            $('#deposit_amount').val((rent * 2).toFixed(2));
+        }
+    });
+    
+    // Auto-save form data
+    setInterval(function() {
+        autoSaveForm('unitForm');
+    }, 30000);
+    
+    // Restore form data on page load
+    restoreFormData('unitForm');
+    
+    // Clear auto-save on successful submit
+    $('#unitForm').submit(function() {
+        clearAutoSave('unitForm');
+    });
+});
+</script>
+{% endblock %}

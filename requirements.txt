@@ -1,0 +1,14 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+WTForms==3.1.1
+Werkzeug==3.0.3
+SQLAlchemy==2.0.36
+Jinja2==3.1.4
+reportlab==4.2.5
+openpyxl==3.1.5
+python-dateutil==2.9.0
+bcrypt==4.2.1
+APScheduler==3.10.4
+click==8.1.7

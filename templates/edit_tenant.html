@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Tenant - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-user-edit"></i> Edit Tenant</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('tenants') }}">Tenants</a></li>
+                        <li class="breadcrumb-item active">Edit {{ tenant.name }}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Tenant Information</h5>
+                </div>
+                
+                <form method="POST" id="editTenantForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required
+                                       value="{{ tenant.name }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" id="email" name="email" required
+                                       value="{{ tenant.email }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required
+                                       value="{{ tenant.phone }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="emergency_phone" class="form-label">Emergency Phone</label>
+                                <input type="tel" class="form-control" id="emergency_phone" name="emergency_phone"
+                                       value="{{ tenant.emergency_phone or '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="emergency_contact" class="form-label">Emergency Contact Name</label>
+                                <input type="text" class="form-control" id="emergency_contact" name="emergency_contact"
+                                       value="{{ tenant.emergency_contact or '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-control" id="status" name="status" data-current="{{ tenant.status }}">
+                                    <option value="active" {% if tenant.status == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="inactive" {% if tenant.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                    <option value="moved_out" {% if tenant.status == 'moved_out' %}selected{% endif %}>Moved Out</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ tenant.address or '' }}</textarea>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('tenants') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Tenants
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Update Tenant
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <!-- Tenant Summary -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Tenant Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                             style="width: 60px; height: 60px; font-size: 1.5rem;">
+                            {{ tenant.name[0].upper() }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ tenant.name }}</h6>
+                            <span class="badge status-{{ tenant.status }}">
+                                {{ tenant.status.replace('_', ' ').title() }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <ul class="list-unstyled">
+                        <li><strong>Email:</strong> {{ tenant.email }}</li>
+                        <li><strong>Phone:</strong> {{ tenant.phone }}</li>
+                        <li><strong>Created:</strong> {{ tenant.created_date.strftime('%m/%d/%Y') }}</li>
+                        {% if tenant.emergency_contact %}
+                        <li><strong>Emergency:</strong> {{ tenant.emergency_contact }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Current Lease -->
+            {% set active_lease = tenant.leases|selectattr('status', 'equalto', 'active')|first %}
+            {% if active_lease %}
+            <div class="card dashboard-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-file-contract"></i> Current Lease</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Unit</small>
+                            <div class="fw-bold">{{ active_lease.unit.number }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Floor</small>
+                            <div class="fw-bold">{{ active_lease.unit.floor }}</div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <small class="text-muted">Monthly Rent</small>
+                            <div class="fw-bold">${{ active_lease.monthly_rent }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Lease End</small>
+                            <div class="fw-bold">{{ active_lease.end_date.strftime('%m/%d/%Y') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Payment History -->
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    {% if tenant.payments %}
+                        {% for payment in tenant.payments[:3] %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <small class="text-muted">{{ payment.payment_date.strftime('%m/%d/%Y') }}</small>
+                                <div class="fw-bold">${{ payment.amount }}</div>
+                            </div>
+                            <span class="badge bg-success">{{ payment.payment_method.title() }}</span>
+                        </div>
+                        {% endfor %}
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('payments') }}" class="btn btn-sm btn-outline-primary">
+                                View All Payments
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-credit-card" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No payment history</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Format phone numbers
+    $('input[type="tel"]').on('input', function() {
+        let value = $(this).val().replace(/\D/g, '');
+        let formattedValue = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+        if (value.length <= 10) {
+            $(this).val(formattedValue);
+        }
+    });
+    
+    // Confirm status changes
+    $('#status').change(function() {
+        var newStatus = $(this).val();
+        var currentStatus = $(this).data('current');
+        
+        if (newStatus === 'moved_out' && currentStatus !== 'moved_out') {
+            if (!confirm('Marking tenant as "Moved Out" may affect active leases. Continue?')) {
+                $(this).val(currentStatus);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

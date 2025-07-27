@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Create Lease - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-plus"></i> Create New Lease</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('leases') }}">Leases</a></li>
+                        <li class="breadcrumb-item active">Create Lease</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-file-contract"></i> Lease Agreement Details</h5>
+                </div>
+                
+                <form method="POST" id="leaseForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tenant_id" class="form-label">Tenant *</label>
+                                <select class="form-control" id="tenant_id" name="tenant_id" required>
+                                    <option value="">Select Tenant</option>
+                                    {% for tenant in tenants %}
+                                    <option value="{{ tenant.id }}">{{ tenant.name }} - {{ tenant.email }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="unit_id" class="form-label">Unit *</label>
+                                <select class="form-control" id="unit_id" name="unit_id" required>
+                                    <option value="">Select Unit</option>
+                                    {% for unit in units %}
+                                    <option value="{{ unit.id }}" data-rent="{{ unit.rent_amount }}" data-deposit="{{ unit.deposit_amount }}">
+                                        Unit {{ unit.number }} - Floor {{ unit.floor }} ({{ unit.type }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Lease Start Date *</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">Lease End Date *</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="monthly_rent" class="form-label">Monthly Rent *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="monthly_rent" name="monthly_rent" required
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="deposit_amount" class="form-label">Security Deposit *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="deposit_amount" name="deposit_amount" required
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lease Summary -->
+                    <div class="card bg-light border-0 mb-4" id="leaseSummary" style="display: none;">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-info-circle"></i> Lease Summary</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <small class="text-muted">Tenant</small>
+                                    <div id="summaryTenant" class="fw-bold">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Unit</small>
+                                    <div id="summaryUnit" class="fw-bold">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Duration</small>
+                                    <div id="summaryDuration" class="fw-bold">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Total Rent</small>
+                                    <div id="summaryTotal" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('leases') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Leases
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Lease
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-populate rent and deposit based on selected unit
+    $('#unit_id').change(function() {
+        var selectedOption = $(this).find('option:selected');
+        var rent = selectedOption.data('rent');
+        var deposit = selectedOption.data('deposit');
+        
+        if (rent) {
+            $('#monthly_rent').val(rent);
+        }
+        if (deposit) {
+            $('#deposit_amount').val(deposit);
+        }
+        
+        updateLeaseSummary();
+    });
+    
+    // Auto-populate end date (1 year from start date)
+    $('#start_date').change(function() {
+        var startDate = new Date($(this).val());
+        if (startDate) {
+            var endDate = new Date(startDate);
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            $('#end_date').val(endDate.toISOString().split('T')[0]);
+        }
+        updateLeaseSummary();
+    });
+    
+    // Update summary when other fields change
+    $('#tenant_id, #end_date, #monthly_rent').change(function() {
+        updateLeaseSummary();
+    });
+    
+    function updateLeaseSummary() {
+        var tenant = $('#tenant_id option:selected').text();
+        var unit = $('#unit_id option:selected').text();
+        var startDate = $('#start_date').val();
+        var endDate = $('#end_date').val();
+        var monthlyRent = parseFloat($('#monthly_rent').val()) || 0;
+        
+        if (tenant && unit && startDate && endDate && monthlyRent) {
+            var start = new Date(startDate);
+            var end = new Date(endDate);
+            var months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+            var totalRent = months * monthlyRent;
+            
+            $('#summaryTenant').text(tenant.split(' - ')[0]);
+            $('#summaryUnit').text(unit.split(' - ')[0]);
+            $('#summaryDuration').text(months + ' months');
+            $('#summaryTotal').text('$' + totalRent.toLocaleString());
+            $('#leaseSummary').show();
+        } else {
+            $('#leaseSummary').hide();
+        }
+    }
+    
+    // Set minimum date to today
+    var today = new Date().toISOString().split('T')[0];
+    $('#start_date').attr('min', today);
+    
+    // Auto-save form data
+    setInterval(function() {
+        autoSaveForm('leaseForm');
+    }, 30000);
+    
+    // Restore form data on page load
+    restoreFormData('leaseForm');
+    
+    // Clear auto-save on successful submit
+    $('#leaseForm').submit(function() {
+        clearAutoSave('leaseForm');
+    });
+});
+</script>
+{% endblock %}

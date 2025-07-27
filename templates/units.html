@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Units - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-home"></i> Units</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item active">Units</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('add_unit') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Unit
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Units Grid -->
+    <div class="row">
+        {% for unit in units %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">Unit {{ unit.number }}</h5>
+                            <small class="text-muted">Floor {{ unit.floor }}</small>
+                        </div>
+                        <span class="badge status-{{ unit.status }} fs-6">
+                            {{ unit.status.title() }}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Type</small>
+                                <div class="fw-bold">{{ unit.type }}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Area</small>
+                                <div class="fw-bold">
+                                    {% if unit.area %}{{ unit.area }} sqft{% else %}N/A{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Rent</small>
+                                <div class="fw-bold text-success">${{ unit.rent_amount }}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Deposit</small>
+                                <div class="fw-bold">${{ unit.deposit_amount }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Tenant -->
+                    {% set current_lease = unit.leases|selectattr('status', 'equalto', 'active')|first %}
+                    {% if current_lease %}
+                    <div class="mb-3">
+                        <small class="text-muted">Current Tenant</small>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                 style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                {{ current_lease.tenant.name[0].upper() }}
+                            </div>
+                            <span class="fw-bold">{{ current_lease.tenant.name }}</span>
+                        </div>
+                        <small class="text-muted">
+                            Lease ends: {{ current_lease.end_date.strftime('%m/%d/%Y') }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group w-100">
+                        <a href="{{ url_for('edit_unit', id=unit.id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        {% if unit.status == 'available' %}
+                        <a href="{{ url_for('add_lease') }}?unit={{ unit.id }}" 
+                           class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-contract"></i> Lease
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('delete_unit', id=unit.id) }}" 
+                           class="btn btn-outline-danger btn-sm delete-confirm">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if not units %}
+    <div class="text-center py-5">
+        <i class="fas fa-home text-muted" style="font-size: 3rem;"></i>
+        <h5 class="mt-3 text-muted">No units found</h5>
+        <p class="text-muted">Get started by adding your first unit</p>
+        <a href="{{ url_for('add_unit') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Unit
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
