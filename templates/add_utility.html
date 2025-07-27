@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Add Utility Bill - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-plus"></i> Add Utility Bill</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('utilities') }}">Utilities</a></li>
+                        <li class="breadcrumb-item active">Add Bill</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Utility Bill Details</h5>
+                </div>
+                
+                <form method="POST" id="utilityForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="unit_id" class="form-label">Unit *</label>
+                                <select class="form-control" id="unit_id" name="unit_id" required>
+                                    <option value="">Select Unit</option>
+                                    {% for unit in units %}
+                                    <option value="{{ unit.id }}">Unit {{ unit.number }} - Floor {{ unit.floor }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="utility_type" class="form-label">Utility Type *</label>
+                                <select class="form-control" id="utility_type" name="utility_type" required>
+                                    <option value="">Select Utility Type</option>
+                                    <option value="electricity">Electricity</option>
+                                    <option value="gas">Gas</option>
+                                    <option value="water">Water</option>
+                                    <option value="internet">Internet</option>
+                                    <option value="cable">Cable TV</option>
+                                    <option value="trash">Trash Collection</option>
+                                    <option value="maintenance">Building Maintenance</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="month_year" class="form-label">Month/Year *</label>
+                                <input type="month" class="form-control" id="month_year" name="month_year" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="amount" name="amount" required
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="due_date" class="form-label">Due Date *</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bill_number" class="form-label">Bill Number</label>
+                                <input type="text" class="form-control" id="bill_number" name="bill_number"
+                                       placeholder="Utility company bill number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('utilities') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Utilities
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Bill
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set current month as default
+    var now = new Date();
+    var month = ('0' + (now.getMonth() + 1)).slice(-2);
+    var year = now.getFullYear();
+    $('#month_year').val(year + '-' + month);
+    
+    // Auto-populate due date based on utility type
+    $('#utility_type').change(function() {
+        var utilityType = $(this).val();
+        var now = new Date();
+        var dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+        
+        // Common due dates for different utilities
+        switch(utilityType) {
+            case 'electricity':
+                dueDate.setDate(15); // 15th of month
+                break;
+            case 'gas':
+                dueDate.setDate(20); // 20th of month
+                break;
+            case 'water':
+                dueDate.setDate(25); // 25th of month
+                break;
+            case 'internet':
+                dueDate.setDate(10); // 10th of month
+                break;
+            default:
+                dueDate.setDate(30); // End of month
+        }
+        
+        $('#due_date').val(dueDate.toISOString().split('T')[0]);
+    });
+    
+    // Convert month input to MM-YYYY format for backend
+    $('#utilityForm').submit(function() {
+        var monthInput = $('#month_year').val();
+        if (monthInput) {
+            var date = new Date(monthInput + '-01');
+            var month = ('0' + (date.getMonth() + 1)).slice(-2);
+            var year = date.getFullYear();
+            $('#month_year').val(month + '-' + year);
+        }
+    });
+    
+    // Auto-save form data
+    setInterval(function() {
+        autoSaveForm('utilityForm');
+    }, 30000);
+    
+    // Restore form data on page load
+    restoreFormData('utilityForm');
+    
+    // Clear auto-save on successful submit
+    $('#utilityForm').submit(function() {
+        clearAutoSave('utilityForm');
+    });
+});
+</script>
+{% endblock %}

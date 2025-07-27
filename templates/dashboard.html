@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active">Home</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group">
+                    <a href="{{ url_for('generate_invoices') }}" class="btn btn-primary">
+                        <i class="fas fa-file-invoice"></i> Generate Invoices
+                    </a>
+                    <a href="{{ url_for('backup') }}" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Backup
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card stats-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="card-title">{{ total_tenants }}</div>
+                            <div class="card-text">Active Tenants</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users card-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card stats-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="card-title">{{ occupied_units }}</div>
+                            <div class="card-text">Occupied Units</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-home card-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card stats-info">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="card-title">{{ available_units }}</div>
+                            <div class="card-text">Available Units</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-door-open card-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card stats-warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="card-title">${{ "%.2f"|format(monthly_revenue) }}</div>
+                            <div class="card-text">Monthly Revenue</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign card-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Alerts -->
+    <div class="row mb-4">
+        <div class="col-xl-8">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('add_tenant') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus"></i><br>
+                                <small>Add Tenant</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('add_unit') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-home"></i><br>
+                                <small>Add Unit</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('add_lease') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-file-contract"></i><br>
+                                <small>New Lease</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('add_payment') }}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-credit-card"></i><br>
+                                <small>Record Payment</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('add_maintenance') }}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-tools"></i><br>
+                                <small>Maintenance</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('add_utility') }}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-bolt"></i><br>
+                                <small>Utility Bill</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('reports') }}" class="btn btn-outline-dark w-100">
+                                <i class="fas fa-chart-bar"></i><br>
+                                <small>Reports</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('invoices') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-file-invoice-dollar"></i><br>
+                                <small>Invoices</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Alerts</h5>
+                </div>
+                <div class="card-body">
+                    {% if overdue_invoices > 0 %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>{{ overdue_invoices }}</strong> overdue invoice(s)
+                        <a href="{{ url_for('invoices', status='overdue') }}" class="btn btn-sm btn-danger float-end">View</a>
+                    </div>
+                    {% endif %}
+
+                    {% if pending_payments > 0 %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock"></i>
+                        <strong>{{ pending_payments }}</strong> pending payment(s) this month
+                        <a href="{{ url_for('invoices', status='pending') }}" class="btn btn-sm btn-warning float-end">View</a>
+                    </div>
+                    {% endif %}
+
+                    {% if recent_maintenance|length > 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-tools"></i>
+                        <strong>{{ recent_maintenance|length }}</strong> open maintenance request(s)
+                        <a href="{{ url_for('maintenance', status='open') }}" class="btn btn-sm btn-info float-end">View</a>
+                    </div>
+                    {% endif %}
+
+                    {% if overdue_invoices == 0 and pending_payments == 0 and recent_maintenance|length == 0 %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-check-circle text-success" style="font-size: 2rem;"></i>
+                        <p class="mt-2">All systems running smoothly!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Maintenance -->
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Occupancy Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="progress mb-3" style="height: 25px;">
+                                {% set occupancy_rate = (occupied_units / total_units * 100) if total_units > 0 else 0 %}
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ occupancy_rate }}%">
+                                    {{ "%.1f"|format(occupancy_rate) }}% Occupied
+                                </div>
+                            </div>
+                            <div class="row text-center">
+                                <div class="col">
+                                    <div class="h4 text-success">{{ occupied_units }}</div>
+                                    <small class="text-muted">Occupied</small>
+                                </div>
+                                <div class="col">
+                                    <div class="h4 text-warning">{{ available_units }}</div>
+                                    <small class="text-muted">Available</small>
+                                </div>
+                                <div class="col">
+                                    <div class="h4 text-primary">{{ total_units }}</div>
+                                    <small class="text-muted">Total Units</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <canvas id="occupancyChart" width="150" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-tools"></i> Recent Maintenance</h5>
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    {% if recent_maintenance %}
+                        {% for request in recent_maintenance %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <span class="badge priority-{{ request.priority }}">
+                                    {{ request.priority.title() }}
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="fw-bold">{{ request.title }}</div>
+                                <small class="text-muted">
+                                    {{ request.tenant.name }} - 
+                                    {{ request.created_date.strftime('%m/%d/%Y') }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="text-center">
+                            <a href="{{ url_for('maintenance') }}" class="btn btn-sm btn-outline-primary">
+                                View All Requests
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-check-circle text-success" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No pending maintenance requests</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // Occupancy Chart
+    const occupancyCtx = document.getElementById('occupancyChart');
+    if (occupancyCtx) {
+        new Chart(occupancyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Occupied', 'Available'],
+                datasets: [{
+                    data: [{{ occupied_units }}, {{ available_units }}],
+                    backgroundColor: ['#27ae60', '#e74c3c'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Add Maintenance Request - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-plus"></i> Add Maintenance Request</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('maintenance') }}">Maintenance</a></li>
+                        <li class="breadcrumb-item active">Add Request</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-tools"></i> Maintenance Request Details</h5>
+                </div>
+                
+                <form method="POST" id="maintenanceForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tenant_id" class="form-label">Tenant *</label>
+                                <select class="form-control" id="tenant_id" name="tenant_id" required>
+                                    <option value="">Select Tenant</option>
+                                    {% for tenant in tenants %}
+                                    <option value="{{ tenant.id }}">{{ tenant.name }} - {{ tenant.email }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-control" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="plumbing">Plumbing</option>
+                                    <option value="electrical">Electrical</option>
+                                    <option value="hvac">HVAC</option>
+                                    <option value="appliances">Appliances</option>
+                                    <option value="painting">Painting</option>
+                                    <option value="flooring">Flooring</option>
+                                    <option value="windows">Windows/Doors</option>
+                                    <option value="pest_control">Pest Control</option>
+                                    <option value="general">General</option>
+                                    <option value="emergency">Emergency</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="priority" class="form-label">Priority *</label>
+                                <select class="form-control" id="priority" name="priority" required>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                       placeholder="Brief description of the issue">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required
+                                  placeholder="Detailed description of the maintenance issue..."></textarea>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('maintenance') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Maintenance
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Submit Request
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-set priority based on category
+    $('#category').change(function() {
+        var category = $(this).val();
+        if (category === 'emergency') {
+            $('#priority').val('urgent');
+        } else if (category === 'electrical' || category === 'plumbing') {
+            $('#priority').val('high');
+        }
+    });
+    
+    // Visual feedback for priority selection
+    $('#priority').change(function() {
+        var priority = $(this).val();
+        $(this).removeClass('priority-low priority-medium priority-high priority-urgent');
+        if (priority) {
+            $(this).addClass('priority-' + priority);
+        }
+    });
+    
+    // Auto-save form data
+    setInterval(function() {
+        autoSaveForm('maintenanceForm');
+    }, 30000);
+    
+    // Restore form data on page load
+    restoreFormData('maintenanceForm');
+    
+    // Clear auto-save on successful submit
+    $('#maintenanceForm').submit(function() {
+        clearAutoSave('maintenanceForm');
+    });
+});
+</script>
+{% endblock %}

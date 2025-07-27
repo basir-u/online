@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Record Payment - Tenant Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1><i class="fas fa-plus"></i> Record Payment</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('payments') }}">Payments</a></li>
+                        <li class="breadcrumb-item active">Record Payment</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8">
+            <div class="form-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Payment Details</h5>
+                </div>
+                
+                <form method="POST" id="paymentForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tenant_id" class="form-label">Tenant *</label>
+                                <select class="form-control" id="tenant_id" name="tenant_id" required>
+                                    <option value="">Select Tenant</option>
+                                    {% for tenant in tenants %}
+                                    <option value="{{ tenant.id }}">{{ tenant.name }} - {{ tenant.email }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="invoice_id" class="form-label">Invoice (Optional)</label>
+                                <select class="form-control" id="invoice_id" name="invoice_id">
+                                    <option value="">Select Invoice (or leave blank for general payment)</option>
+                                    {% for invoice in invoices %}
+                                    <option value="{{ invoice.id }}" data-amount="{{ invoice.total_amount }}" data-tenant="{{ invoice.lease.tenant.id }}">
+                                        {{ invoice.invoice_number }} - ${{ invoice.total_amount }} ({{ invoice.month_year }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="amount" name="amount" required
+                                           min="0" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="payment_date" class="form-label">Payment Date *</label>
+                                <input type="date" class="form-control" id="payment_date" name="payment_date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="payment_method" class="form-label">Payment Method *</label>
+                                <select class="form-control" id="payment_method" name="payment_method" required>
+                                    <option value="">Select Payment Method</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="check">Check</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="online">Online Payment</option>
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="debit_card">Debit Card</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="reference_number" class="form-label">Reference Number</label>
+                                <input type="text" class="form-control" id="reference_number" name="reference_number"
+                                       placeholder="Check number, transaction ID, etc.">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"
+                                  placeholder="Additional notes about this payment..."></textarea>
+                    </div>
+
+                    <!-- Payment Summary -->
+                    <div class="card bg-light border-0 mb-4" id="paymentSummary" style="display: none;">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-info-circle"></i> Payment Summary</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <small class="text-muted">Tenant</small>
+                                    <div id="summaryTenant" class="fw-bold">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Invoice</small>
+                                    <div id="summaryInvoice" class="fw-bold">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Amount</small>
+                                    <div id="summaryAmount" class="fw-bold text-success">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Method</small>
+                                    <div id="summaryMethod" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <a href="{{ url_for('payments') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Payments
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Record Payment
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set today's date as default
+    var today = new Date().toISOString().split('T')[0];
+    $('#payment_date').val(today);
+    
+    // Auto-populate amount when invoice is selected
+    $('#invoice_id').change(function() {
+        var selectedOption = $(this).find('option:selected');
+        var amount = selectedOption.data('amount');
+        var tenantId = selectedOption.data('tenant');
+        
+        if (amount) {
+            $('#amount').val(amount);
+        }
+        if (tenantId) {
+            $('#tenant_id').val(tenantId);
+        }
+        
+        updatePaymentSummary();
+    });
+    
+    // Filter invoices based on selected tenant
+    $('#tenant_id').change(function() {
+        var tenantId = $(this).val();
+        var invoiceSelect = $('#invoice_id');
+        
+        invoiceSelect.find('option').each(function() {
+            var option = $(this);
+            var optionTenantId = option.data('tenant');
+            
+            if (option.val() === '') {
+                option.show(); // Always show the default option
+            } else if (tenantId === '' || optionTenantId == tenantId) {
+                option.show();
+            } else {
+                option.hide();
+            }
+        });
+        
+        // Reset invoice selection if it doesn't match current tenant
+        var currentInvoiceOption = invoiceSelect.find('option:selected');
+        if (currentInvoiceOption.data('tenant') != tenantId) {
+            invoiceSelect.val('');
+        }
+        
+        updatePaymentSummary();
+    });
+    
+    // Update summary when fields change
+    $('#amount, #payment_method').on('input change', function() {
+        updatePaymentSummary();
+    });
+    
+    function updatePaymentSummary() {
+        var tenant = $('#tenant_id option:selected').text();
+        var invoice = $('#invoice_id option:selected').text();
+        var amount = parseFloat($('#amount').val()) || 0;
+        var method = $('#payment_method option:selected').text();
+        
+        if (tenant && amount && method) {
+            $('#summaryTenant').text(tenant.split(' - ')[0]);
+            $('#summaryInvoice').text(invoice.includes('INV-') ? invoice.split(' - ')[0] : 'General Payment');
+            $('#summaryAmount').text('$' + amount.toFixed(2));
+            $('#summaryMethod').text(method);
+            $('#paymentSummary').show();
+        } else {
+            $('#paymentSummary').hide();
+        }
+    }
+    
+    // Auto-save form data
+    setInterval(function() {
+        autoSaveForm('paymentForm');
+    }, 30000);
+    
+    // Restore form data on page load
+    restoreFormData('paymentForm');
+    
+    // Clear auto-save on successful submit
+    $('#paymentForm').submit(function() {
+        clearAutoSave('paymentForm');
+    });
+});
+</script>
+{% endblock %}
